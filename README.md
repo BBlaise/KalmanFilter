@@ -1,10 +1,10 @@
 # KalmanFilter
 
-A fixed-size linear Kalman filter for C++ that predicts a state and corrects it one scalar measurement at a time. The caller supplies the model and noise parameters.
+A header-only, fixed-size linear Kalman filter for C++ that predicts a state and corrects it one scalar measurement at a time. The caller supplies the model and noise parameters.
 
 ## Install
 
-Keep `src/KalmanFilter.h` and `src/KalmanFilter.tpp` together, add `src/` to your include path, and include `KalmanFilter.h` in a C++11 or newer project.
+Copy `src/KalmanFilter.h` to your project or add `src/` to your include path. Include `KalmanFilter.h` in a C++11 or newer project.
 
 ## Usage
 
