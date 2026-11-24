@@ -1,0 +1,84 @@
+// Keep template definitions available to any KalmanFilter specialization.
+#include "KalmanFilter.h"
+
+// Set the starting estimate and its covariance.
+template <size_t num_states, typename Scalar>
+void KalmanFilter<num_states, Scalar>::initialize(const State& initial_state, const Matrix& initial_covariance) {
+    for (size_t i = 0; i < num_states; i++) {
+        state[i] = initial_state[i];
+        for (size_t j = 0; j < num_states; j++) {
+            covariance[i][j] = initial_covariance[i][j];
+        }
+    }
+}
+
+// Predict without an external input.
+template <size_t num_states, typename Scalar>
+void KalmanFilter<num_states, Scalar>::predict(const Matrix& transition, const Matrix& process_noise) {
+    const State input_effect = {};
+    predict(transition, input_effect, process_noise);
+}
+
+// Predict the state (F*x + Bu) and covariance (F*P*F^T + Q).
+template <size_t num_states, typename Scalar>
+void KalmanFilter<num_states, Scalar>::predict(const Matrix& transition, const State& input_effect, const Matrix& process_noise) {
+    State predicted_state = {};
+    Matrix transition_covariance = {};
+
+    for (size_t i = 0; i < num_states; i++) {
+        predicted_state[i] = input_effect[i];
+        for (size_t k = 0; k < num_states; k++) {
+            predicted_state[i] += transition[i][k] * state[k];
+            for (size_t j = 0; j < num_states; j++) {
+                transition_covariance[i][j] += transition[i][k] * covariance[k][j];
+            }
+        }
+    }
+
+    for (size_t i = 0; i < num_states; i++) {
+        state[i] = predicted_state[i];
+        for (size_t j = 0; j < num_states; j++) {
+            covariance[i][j] = process_noise[i][j];
+            for (size_t k = 0; k < num_states; k++) {
+                covariance[i][j] += transition_covariance[i][k] * transition[j][k];
+            }
+        }
+    }
+}
+
+// Correct with one measurement. The measurement model is the row H.
+// Returns false if the innovation variance is unusable.
+template <size_t num_states, typename Scalar>
+bool KalmanFilter<num_states, Scalar>::correct(Scalar measurement, const State& measurement_model, Scalar measurement_variance) {
+    State covariance_projection = {};  // P*H^T
+    Scalar innovation = measurement;
+    Scalar innovation_variance = measurement_variance;
+
+    for (size_t i = 0; i < num_states; i++) {
+        innovation -= measurement_model[i] * state[i];
+        for (size_t j = 0; j < num_states; j++) {
+            covariance_projection[i] += covariance[i][j] * measurement_model[j];
+        }
+        innovation_variance += measurement_model[i] * covariance_projection[i];
+    }
+
+    if (!(innovation_variance > Scalar(0))) return false;
+
+    for (size_t i = 0; i < num_states; i++) {
+        const Scalar gain = covariance_projection[i] / innovation_variance;
+        state[i] += gain * innovation;
+
+        // Update one triangle and mirror it to keep P symmetric.
+        for (size_t j = i; j < num_states; j++) {
+            covariance[i][j] -= gain * covariance_projection[j];
+            covariance[j][i] = covariance[i][j];
+        }
+    }
+    return true;
+}
+
+// Return the estimate at the caller's state index.
+template <size_t num_states, typename Scalar>
+Scalar KalmanFilter<num_states, Scalar>::getState(size_t index) const {
+    return state[index];
+}
