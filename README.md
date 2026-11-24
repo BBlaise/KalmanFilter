@@ -1,20 +1,26 @@
-# Library Name
+# KalmanFilter
 
-One or two sentences explaining what the library does and when to use it.
+A fixed-size linear Kalman filter for C++ that predicts a state and corrects it one scalar measurement at a time. The caller supplies the model and noise parameters.
 
 ## Install
 
-List the files to add to the project and any required dependencies.
+Keep `src/KalmanFilter.h` and `src/KalmanFilter.tpp` together, add `src/` to your include path, and include `KalmanFilter.h` in a C++11 or newer project.
 
 ## Usage
 
-Show the shortest working snippet and what it should produce.
+Choose the number of states with `KalmanFilter<N>`. Call `initialize()` with a starting estimate and covariance, then call `predict()` and `correct()` as measurements arrive. Read the estimate with `getState(index)`.
+
+Build the basic example from the repository root with:
+
+```sh
+g++ -std=c++11 -Isrc examples/kalman_filter_basic.cpp -o kalman_filter_basic
+```
+
+Run the executable to see the estimate settle near 10.
 
 ## Examples
 
-- [Basic usage](examples/basic_usage.c) — Shows how to initialize the library and use its main function.
-- [Application example](examples/application_example.c) — Shows how to use the library in a representative application.
+- [Basic C++](examples/kalman_filter_basic.cpp) estimates a constant from a short sequence of noisy measurements.
+- [STM32L476RG](examples/kalman_filter_STM32L476RG.cpp) estimates X-axis tilt and angular rate from an MPU6050 and prints them over UART.
 
-## License
-
-[License name](LICENSE)
+The STM32 example uses an STM32CubeL4 HAL project and the STM32I2C and MPU6050 libraries.
