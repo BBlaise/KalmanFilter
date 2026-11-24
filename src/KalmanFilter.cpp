@@ -19,12 +19,13 @@ void KalmanFilter<num_states, Scalar>::predict(const Matrix& transition, const M
     predict(transition, input_effect, process_noise);
 }
 
-// Predict the state (F*x + Bu) and covariance (F*P*F^T + Q).
+// Predict with the supplied input effect Bu and process noise Q.
 template <size_t num_states, typename Scalar>
 void KalmanFilter<num_states, Scalar>::predict(const Matrix& transition, const State& input_effect, const Matrix& process_noise) {
     State predicted_state = {};
     Matrix transition_covariance = {};
 
+    // Compute F*x + Bu and F*P before overwriting the previous estimate.
     for (size_t i = 0; i < num_states; i++) {
         predicted_state[i] = input_effect[i];
         for (size_t k = 0; k < num_states; k++) {
@@ -35,6 +36,7 @@ void KalmanFilter<num_states, Scalar>::predict(const Matrix& transition, const S
         }
     }
 
+    // Finish F*P*F^T + Q using rows of F as columns of F^T.
     for (size_t i = 0; i < num_states; i++) {
         state[i] = predicted_state[i];
         for (size_t j = 0; j < num_states; j++) {
@@ -54,6 +56,7 @@ bool KalmanFilter<num_states, Scalar>::correct(Scalar measurement, const State& 
     Scalar innovation = measurement;
     Scalar innovation_variance = measurement_variance;
 
+    // Compute the measurement residual z - H*x and its variance H*P*H^T + R.
     for (size_t i = 0; i < num_states; i++) {
         innovation -= measurement_model[i] * state[i];
         for (size_t j = 0; j < num_states; j++) {
@@ -62,6 +65,7 @@ bool KalmanFilter<num_states, Scalar>::correct(Scalar measurement, const State& 
         innovation_variance += measurement_model[i] * covariance_projection[i];
     }
 
+    // A zero, negative, or NaN variance leaves the estimate unchanged.
     if (!(innovation_variance > Scalar(0))) return false;
 
     for (size_t i = 0; i < num_states; i++) {
