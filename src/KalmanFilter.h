@@ -1,7 +1,6 @@
 #ifndef KALMAN_FILTER_H_
 #define KALMAN_FILTER_H_
 
-#include "KalmanFilter.h"
 #include <stddef.h>
 
 // Linear Kalman filter with a fixed state size and scalar measurements.
@@ -36,6 +35,6 @@ private:
 };
 
 // Template definitions must be visible for each state count and scalar type.
-#include "../Src/KalmanFilter.cpp"
+#include "KalmanFilter.tpp"
 
 #endif // KALMAN_FILTER_H_

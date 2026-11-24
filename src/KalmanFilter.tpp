@@ -1,6 +1,3 @@
-// Keep template definitions available to any KalmanFilter specialization.
-#include "KalmanFilter.h"
-
 // Set the starting estimate and its covariance.
 template <size_t num_states, typename Scalar>
 void KalmanFilter<num_states, Scalar>::initialize(const State& initial_state, const Matrix& initial_covariance) {
